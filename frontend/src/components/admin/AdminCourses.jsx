@@ -1,0 +1,180 @@
+import { useCookies } from 'react-cookie';
+import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import Swal from 'sweetalert2';
+
+function AdminCourses(){
+    //Se recupera la cookie del login
+    const [cookie, setCookie, removeCookie] = useCookies(['admin']);
+    const navigate = useNavigate(); //Para navegar entre páginas
+    const [pageState, setPageState] = useState(true); //Estado incial que va a cambiar para que se renderice la página
+    const [coursesList, setCoursesList] = useState([]); //Array con la lista de estudiantes
+
+    //Función que se ejecutará cada vez que se detecte un cambio y va a renderizar los componentes nuevamente
+    useEffect(() => {
+        fetch('http://localhost:4000/admin/courses', {
+            method: "GET"
+        })
+            .then(response => response.json())
+            .then(res => {
+                setCoursesList(res);
+            })
+            .catch(err => console.log(err));
+    }, [pageState])
+
+    //Función para cerrar sesión:
+    function handleLogout(){
+        removeCookie('admin');
+        navigate('/login');
+    }
+
+    const handleFileUpload = (event) => {
+        let res;
+
+        event.preventDefault();
+        let file = event.target.files[0];
+        const reader = new FileReader();
+        reader.readAsText( file );
+        reader.onload = () => {
+            res = JSON.parse(reader.result);
+                fetch('http://localhost:4000/admin/courses', {
+                    method: "POST",
+                    body: JSON.stringify(res),
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                })
+                .then(response => response.json())
+                .then(res => {
+                    console.log(res.state);
+                    if(res.state){
+                        Swal.fire({
+                            title: 'Ok',
+                            text: `El archivo fue cargado correctamente`,
+                            icon: 'success',
+                            confirmButtonText: 'Ok'
+                        });   
+                        setPageState(!pageState);
+                    }
+                    else{
+                        Swal.fire({
+                            title: 'Error',
+                            text: `Uno de los elementos no cumple con el formato del archivo. Revise el archivo y vuelva a intentarlo`,
+                            icon: 'error',
+                            confirmButtonText: 'Ok'
+                        });  
+                    }
+                })
+                .catch(err => console.log(err))
+        }
+        reader.onerror = () => {
+            console.log( reader.error );
+        }
+    }
+
+    function deleteProfessor(idCourse){
+        fetch(`http://localhost:4000/admin/courses/${idCourse}`, {
+            method: "DELETE",  
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then(response => response.json())
+            .then(res => {
+                setPageState(!pageState);
+            })
+            .catch(err => console.log(err))
+    }
+
+    return(
+        <>
+            <nav className="navbar navbar-expand-lg bg-body-tertiary">
+                <div className="container-fluid">
+                    <a className="navbar-brand" href="/admin">Ecys</a>
+                    <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span className="navbar-toggler-icon"></span>
+                    </button>
+                    <div className="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul className="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li className="nav-item">
+                                <a className="nav-link active" aria-current="page" href="/admin/professors">Profesores</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link active" href="/admin/students">Estudiantes</a>
+                            </li>
+                            <li className="nav-item">
+                                <a className="nav-link active" href="/admin/courses">Cursos</a>
+                            </li>
+                        </ul>
+                        <button className="btn btn-outline-danger ms-auto" type="button" onClick={handleLogout}>
+                            Cerrar sesión
+                        </button>
+                    </div>
+                </div>
+            </nav>
+
+            <div className="container mt-5 text-center">
+                <h1 className="mb-4">CURSOS</h1>
+            </div>
+
+            <div className="container mb-4 d-flex justify-content-start">
+                <label
+                    htmlFor="file-upload"
+                    style={{
+                        display: 'inline-block',
+                        padding: '7px 20px',
+                        backgroundColor: '#006400',
+                        color: 'white',
+                        borderRadius: '7px',
+                        cursor: 'pointer',
+                        fontFamily: 'Arial, sans-serif',
+                        marginRight: '10px'
+                    }}
+                >
+                    Carga Masiva
+                </label>
+                <input
+                    id="file-upload"
+                    type="file"
+                    accept='.json'
+                    style={{ display: 'none' }}
+                    onChange={handleFileUpload}
+                />
+                <button type="button" className="btn btn-info">Exportar Excel</button>
+            </div>
+
+            <div className="container">
+                <table className="table table-striped-columns">
+                    <thead>
+                        <tr>
+                            <th scope="col">Código</th>
+                            <th scope="col">Nombre</th>
+                            <th scope="col">Creditos</th>
+                            <th scope="col">Alumnos</th>
+                            <th scope="col">Profesor</th>
+                            <th scope="col">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {coursesList.map(course => (
+                            <tr key={course.Codigo}>
+                                <td>{course.Codigo}</td>
+                                <td>{`${course.Nombre}`}</td>
+                                <td>{course.Creditos}</td>
+                                <td>{course.Alumnos}</td>
+                                <td>{course.Profesor}</td>
+                                <td>
+                                    <button className="btn btn-warning me-2">Editar</button>
+                                    <button className="btn btn-danger" onClick={() => deleteProfessor(course.Codigo)}>Eliminar</button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </>
+
+    )
+}
+
+export default AdminCourses;

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import './Styles/Login.css';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
-//import Swal from 'sweetaltert2';
+import Swal from 'sweetalert2';
 
 function Login(){
     //Variable que almacenará el carnet ingresado
@@ -12,7 +12,7 @@ function Login(){
     const [password, setPassword] = useState(''); 
 
     //Guardamos la cookie en caso el login sea exitoso
-    const [cookieUser, setCookieUser] = useCookies(['user']);
+    const [cookieUser, setCookieUser] = useCookies([]);
     
     //Se crea el objeto para navegar entre rutas
     const navigate = useNavigate();
@@ -27,7 +27,6 @@ function Login(){
             User: carnet,
             Password: password
         }
-        console.log(carnet, password);
 
         //Ahora utilizo la función fetch para comunicarme con el backend, enviado el método http, el cuerpo de la petición
         //y las cabeceras
@@ -45,15 +44,15 @@ function Login(){
                 console.log(res);
                 if(res.state){
                     if(res.role == 0){
-                        // Swal.fire({
-                        //     title: 'Login!',
-                        //     text: `Welcome: ${res.info.Nombre} ${res.info.Apellido}`,
-                        //     icon: 'success',
-                        //     confirmButtonText: 'Ok'
-                        // });
+                        Swal.fire({
+                            title: 'Login!',
+                            text: `Welcome: ${res.info.Nombre} ${res.info.Apellido}`,
+                            icon: 'success',
+                            confirmButtonText: 'Ok'
+                        });
                         
-                        setCookieUser('admin', {Nombre: res.info.Nombre, Apellido: res.info.Apellido, User: res.info.User})
-                        navigate('/admin')
+                        setCookieUser('admin', {Nombre: res.info.Nombre, Apellido: res.info.Apellido, User: res.info.User});
+                        navigate('/admin');
                     }
                     if(res.role == 1){
                         // Swal.fire({
@@ -77,12 +76,12 @@ function Login(){
                     }
                 }
                 else{
-                    // Swal.fire({
-                        // title: 'Error!',
-                        // text: `Carnet and/or password incorrect.`,
-                        // icon: 'error',
-                        // confirmButtonText: 'Ok'
-                    // });
+                    Swal.fire({
+                        title: 'Error!',
+                        text: `Carnet and/or password incorrect.`,
+                        icon: 'error',
+                        confirmButtonText: 'Ok'
+                    });
                     setCarnet("");
                     setPassword("");
                 }
