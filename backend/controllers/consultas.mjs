@@ -1,9 +1,9 @@
 //En este archivo están la "base de datos" que es una lista
 let admins = {
-    Nombre: "Sebastian",
-    Apellido: "Gutierrez",
-    User: "admin",
-    Password: "admin"
+    nombre: "Sebastian",
+    apellido: "Gutierrez",
+    codigo: "admin",
+    contrasenia: "admin"
 }
 let students = []
 let professors = []
@@ -13,12 +13,12 @@ export async function login(req, res) {
     
     try {
         const data = req.body;
-        const student = students.find(temporal => (data.User === temporal.Carnet && data.Password === temporal.Password));
-        const prof = professors.find(temporal => (data.User === temporal.Codigo && data.Password === temporal.Password));
 
-    
+        let student = students.find(temporal => (temporal.carnet === data.codigo && temporal.contrasenia === data.contrasenia));
+        let prof = professors.find(temporal => (temporal.codigo === data.codigo && temporal.contrasenia === data.contrasenia));
+
         //validando si ingresa admin como User y como Password
-        if(data.User == "admin" && data.Password == "admin"){
+        if(data.codigo == admins.codigo && data.contrasenia == admins.contrasenia){
             return res.status(200).json({ state: true, role: 0, info: admins});
         }
         //Validando se ingresa un estudiante correcto
@@ -52,7 +52,7 @@ export async function saveStudents(req, res){
         const reqBody = req.body;
         let band = true;
         for(let element of reqBody){
-            if(element.Carnet === undefined || element.Nombre === undefined || element.Correo === undefined || element.Genero === undefined || element.Contrasenia === undefined){
+            if(element.carnet === undefined || element.nombre === undefined || element.correo === undefined || element.genero === undefined || element.contrasenia === undefined){
                 band = false;
                 break;
             }
@@ -75,9 +75,27 @@ export async function saveStudents(req, res){
 export async function deleteStudent(req, res){
     try {
         const deletedStudent = req.params.carnet;
-        const id = students.findIndex(stud => stud.Carnet == deletedStudent);
+        const id = students.findIndex(stud => stud.carnet == deletedStudent);
         students.splice(id, 1);
         return res.status(200).json({state: true}) 
+    } catch (error) {
+        console.log(error);
+    }
+
+}
+
+export async function updateStudent(req, res){
+    try {
+        const body = req.body;
+        const carnet = req.params.carnet;
+        const index = students.findIndex(student => student.carnet == carnet);
+
+        students[index].nombre = body.nombre;
+        students[index].correo = body.correo;
+        students[index].genero = body.genero;
+        students[index].contrasenia = body.contrasenia;
+        
+        return res.status(200).json({state: true})
     } catch (error) {
         console.log(error);
     }
@@ -97,13 +115,14 @@ export async function saveProfessors(req, res){
         const reqBody = req.body;
         let band = true;
         for(let element of reqBody){
-            if(element.Codigo === undefined || element.Nombre === undefined || element.Correo === undefined || element.Genero === undefined || element.Contrasenia === undefined){
+            if(element.codigo === undefined || element.nombre === undefined || element.correo === undefined || element.genero === undefined || element.contrasenia === undefined){
                 band = false;
                 break;
             }
         };
         if(band){
             reqBody.forEach(prof => {
+                prof.cursos = [];
                 professors.push(prof);
             })
             return res.status(200).json({state: true})
@@ -118,12 +137,31 @@ export async function saveProfessors(req, res){
 
 export async function deleteProfessor(req, res){
     try {
-        const carnet = req.params.codigo;
-        const index = professors.findIndex(prof => prof.Codigo == carnet);
+        const codigo = req.params.codigo;
+        const index = professors.findIndex(prof => prof.codigo == codigo);
         professors.splice(index, 1);
         return res.status(200).json({state: true})
     } catch (error) {
         console.log(error);
+    }
+}
+
+export async function updateProfessor(req, res){
+    try {
+        const body = req.body;
+        const codigo = req.params.codigo;
+        const index = professors.findIndex((prof) => prof.codigo == codigo);
+
+        professors[index].nombre = body.nombre;
+        professors[index].correo = body.correo;
+        professors[index].genero = body.genero;
+        professors[index].contrasenia = body.contrasenia;
+
+        return res.status(200).json({state: true})
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
     }
 }
 
@@ -140,16 +178,23 @@ export async function saveCourses(req, res){
         const reqBody = req.body;
         let band = true;
         for(let element of reqBody){
-            if(element.Codigo === undefined || element.Nombre === undefined || element.Creditos === undefined || element.Profesor === undefined){
+            if(element.codigo === undefined || element.nombre === undefined || element.creditos === undefined || element.profesor === undefined){
                 band = false;
                 break;
             }
         };
         if(band){
             reqBody.forEach(course => {
-                course.Alumnos = 0;
+                
+                const index = professors.findIndex(prof => course.profesor == prof.codigo)
+                
+                if(index != -1){
+                    professors[index].cursos.push(course)
+                }
+                course.alumnos = 0;
                 courses.push(course);
             })
+
             return res.status(200).json({state: true})
         }
         else{
@@ -163,10 +208,28 @@ export async function saveCourses(req, res){
 export async function deleteCourses(req, res){
     try {
         const codigo = req.params.codigo;
-        const index = courses.findIndex(course => course.Codigo == codigo);
+        const index = courses.findIndex(course => course.codigo == codigo);
         courses.splice(index, 1);
         return res.status(200).json({state: true})
     } catch (error) {
         console.log(error);
+    }
+}
+
+export async function updateCourse(req, res){
+    try {
+        const body = req.body;
+        const codigo = req.params.codigo;
+        const index = courses.findIndex((course) => course.codigo == codigo);
+
+        courses[index].nombre = body.nombre;
+        courses[index].creditos = body.creditos;
+        courses[index].profesor = body.profesor;
+
+        return res.status(200).json({state: true})
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
     }
 }

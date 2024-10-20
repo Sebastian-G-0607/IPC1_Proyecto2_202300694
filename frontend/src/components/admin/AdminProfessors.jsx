@@ -1,14 +1,21 @@
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 
 function AdminProfessors(){
     //Se recupera la cookie del login
     const [cookie, setCookie, removeCookie] = useCookies(['admin']);
     const navigate = useNavigate(); //Para navegar entre páginas
+    const [selectedprofessor, setSelectedProfessor] = useState(null);
     const [pageState, setPageState] = useState(true); //Estado incial que va a cambiar para que se renderice la página
     const [professorList, setProfessorList] = useState([]); //Array con la lista de estudiantes
+    const [nombre, setNombre] = useState("");
+    const [correo, setCorreo] = useState("");
+    const [genero, setGenero] = useState("");
+    const [contrasenia, setContrasenia] = useState("");
+
 
     //Función que se ejecutará cada vez que se detecte un cambio y va a renderizar los componentes nuevamente
     useEffect(() => {
@@ -24,7 +31,7 @@ function AdminProfessors(){
 
     //Función para cerrar sesión:
     function handleLogout(){
-        removeCookie('admin');
+        removeCookie(['admin']);
         navigate('/login');
     }
 
@@ -84,6 +91,53 @@ function AdminProfessors(){
                 setPageState(!pageState);
             })
             .catch(err => console.log(err))
+    }
+    
+    function selectedProfessor(idProfessor){
+        setSelectedProfessor(idProfessor);
+        setNombre(idProfessor.nombre);
+        setCorreo(idProfessor.correo);
+        setGenero(idProfessor.genero);
+        setContrasenia(idProfessor.contrasenia);
+    }
+
+    function updateProfessor(){
+
+        let data = {
+            nombre: nombre,
+            correo: correo,
+            genero: genero,
+            contrasenia: contrasenia
+        }
+
+        fetch(`http://localhost:4000/admin/professors/edit/${selectedprofessor.codigo}`, {
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json ())
+        .then(res => {
+            if(res.state){
+                Swal.fire({
+                    title: 'Completado',
+                    text: `El profesor fue actualizado correctamente`,
+                    icon: 'success',
+                    confirmButtonText: 'Ok'
+                });   
+                setPageState(!pageState); 
+                setSelectedProfessor(null);
+            }
+            else{
+                Swal.fire({
+                    title: 'Error',
+                    text: `No se pudo actualizar el profesor`,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                });  
+            }
+        })
     }
 
     return(
@@ -156,20 +210,87 @@ function AdminProfessors(){
                     </thead>
                     <tbody>
                         {professorList.map(professor => (
-                            <tr key={professor.Codigo}>
-                                <td>{professor.Codigo}</td>
-                                <td>{`${professor.Nombre}`}</td>
-                                <td>{professor.Correo}</td>
-                                <td>{professor.Genero}</td>
+                            <tr key={professor.codigo}>
+                                <td>{professor.codigo}</td>
+                                <td>{`${professor.nombre}`}</td>
+                                <td>{professor.correo}</td>
+                                <td>{professor.genero}</td>
                                 <td>
-                                    <button className="btn btn-warning me-2">Editar</button>
-                                    <button className="btn btn-danger" onClick={() => deleteProfessor(professor.Codigo)}>Eliminar</button>
+                                    <button className="btn btn-warning me-2" onClick={() => selectedProfessor(professor)}>Editar</button>
+                                    <button className="btn btn-danger" onClick={() => deleteProfessor(professor.codigo)}>Eliminar</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+
+            {selectedprofessor && (
+                <Modal show={true} onHide={() => setSelectedProfessor(null)}>
+                    <Modal.Header closeButton>
+                        <Modal.Title>Editar profesor</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Codigo</h2>
+                            <input 
+                                type="text" 
+                                value={selectedprofessor.codigo} 
+                                readOnly 
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Nombre</h2>
+                            <input 
+                                type="text" 
+                                placeholder='Nombre del profesor'
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                                value={nombre}
+                                onChange={(e) => setNombre(e.target.value)}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Correo</h2>
+                            <input 
+                                type="text" 
+                                value={correo}
+                                onChange={(e) => setCorreo(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Genero</h2>
+                            <input 
+                                type="text" 
+                                value={genero}
+                                onChange={(e) => setGenero(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Contraseña</h2>
+                            <input 
+                                type="text" 
+                                value={contrasenia}
+                                onChange={(e) => setContrasenia(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                    </Modal.Body>
+
+
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setSelectedProfessor(null)}>
+                            Cerrar
+                        </Button>
+                        <Button variant="primary" onClick={() => updateProfessor()}>
+                            Guardar cambios
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
         </>
 
     )

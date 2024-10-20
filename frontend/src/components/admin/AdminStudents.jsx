@@ -1,6 +1,7 @@
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Modal, Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
 
 function AdminStudents(){
@@ -9,6 +10,12 @@ function AdminStudents(){
     const navigate = useNavigate(); //Para navegar entre páginas
     const [pageState, setPageState] = useState(true); //Estado incial que va a cambiar para que se renderice la página
     const [studentList, setStudentList] = useState([]); //Array con la lista de estudiantes
+    const [selectedStudent, setSelectedStudent] = useState("");
+    const [nombre, setNombre] = useState("");
+    const [correo, setCorreo] = useState("");
+    const [genero, setGenero] = useState("");
+    const [contrasenia, setContrasenia] = useState("");
+
 
     //Función que se ejecutará cada vez que se detecte un cambio y va a renderizar los componentes nuevamente
     useEffect(() => {
@@ -24,7 +31,7 @@ function AdminStudents(){
 
     //Función para cerrar sesión:
     function handleLogout(){
-        removeCookie('admin');
+        removeCookie(['admin']);
         navigate('/login');
     }
 
@@ -46,7 +53,6 @@ function AdminStudents(){
                 })
                 .then(response => response.json())
                 .then(res => {
-                    console.log(res.state);
                     if(res.state){
                         Swal.fire({
                             title: 'Ok',
@@ -85,6 +91,55 @@ function AdminStudents(){
                 setPageState(!pageState);
             })
             .catch(err => console.log(err))
+    }
+
+    function setStudent(student){
+        setSelectedStudent(student);
+        setNombre(student.nombre);
+        setCorreo(student.correo);
+        setGenero(student.genero);
+        setContrasenia(student.contrasenia);
+    }
+
+    function updateStudent(){
+        
+        const data = {
+            nombre: nombre,
+            correo: correo, 
+            genero: genero,
+            contrasenia: contrasenia
+        }
+
+        fetch(`http://localhost:4000/admin/students/edit/${selectedStudent.carnet}`, { 
+            
+            method: "PUT",
+            body: JSON.stringify(data),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => response.json())
+        .then(res => {
+            if(res.state){
+                Swal.fire({
+                    title: 'Completado',
+                    text: `El estudiante fue actualizado correctamente`,
+                    icon: 'success',
+                    confirmButtonText: 'Ok'
+                }); 
+                setPageState(!pageState);
+                selectedStudent(null);
+            }
+            else{
+                Swal.fire({
+                    title: 'Error',
+                    text: `No se pudo actualizar el estudiante`,
+                    icon: 'error',
+                    confirmButtonText: 'Ok'
+                }); 
+            }
+        })
+
     }
 
     return(
@@ -157,22 +212,89 @@ function AdminStudents(){
                     </thead>
                     <tbody>
                         {studentList.map(student => (
-                            <tr key={student.Carnet}>
-                                <td>{student.Carnet}</td>
-                                <td>{`${student.Nombre}`}</td>
-                                <td>{student.Correo}</td>
-                                <td>{student.Genero}</td>
+                            <tr key={student.carnet}>
+                                <td>{student.carnet}</td>
+                                <td>{student.nombre}</td>
+                                <td>{student.correo}</td>
+                                <td>{student.genero}</td>
                                 <td>
-                                    <button className="btn btn-warning me-2">Editar</button>
-                                    <button className="btn btn-danger" onClick={() => deleteStudent(student.Carnet)}>Eliminar</button>
+                                    <button className="btn btn-warning me-2" onClick={() => setStudent(student)}>Editar</button>
+                                    <button className="btn btn-danger" onClick={() => deleteStudent(student.carnet)}>Eliminar</button>
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-        </>
+            
+            {selectedStudent && (
+                <Modal show={true} onHide={() => setSelectedStudent(null)}>
 
+                    <Modal.Header>
+                        <Modal.Title>Editar estudiante</Modal.Title>
+                    </Modal.Header>
+
+                    <Modal.Body>
+                    <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Carnet</h2>
+                            <input 
+                                type="text" 
+                                value={selectedStudent.carnet} 
+                                readOnly 
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Nombre</h2>
+                            <input 
+                                type="text" 
+                                placeholder='Nombre del profesor'
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                                value={nombre}
+                                onChange={(e) => setNombre(e.target.value)}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Correo</h2>
+                            <input 
+                                type="text" 
+                                value={correo}
+                                onChange={(e) => setCorreo(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Genero</h2>
+                            <input 
+                                type="text" 
+                                value={genero}
+                                onChange={(e) => setGenero(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                            <h2 style={{ margin: '0 10px 0 0', fontSize: '22px' }}>Contraseña</h2>
+                            <input 
+                                type="text" 
+                                value={contrasenia}
+                                onChange={(e) => setContrasenia(e.target.value)}
+                                style={{ flex: 1, padding: '5px', border: '1px solid #d3d3d3', borderRadius: '4px' }} 
+                            />
+                        </div>
+                    </Modal.Body>
+
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => setSelectedStudent(null)}>
+                            Cerrar
+                        </Button>
+                        <Button variant="primary" onClick={() => updateStudent()}>
+                            Guardar cambios
+                        </Button>
+                    </Modal.Footer>
+
+                </Modal>
+            )}
+        </>
     )
 }
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './Styles/Login.css';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
@@ -12,10 +12,11 @@ function Login(){
     const [password, setPassword] = useState(''); 
 
     //Guardamos la cookie en caso el login sea exitoso
-    const [cookieUser, setCookieUser] = useCookies([]);
+    const [cookieUser, setCookieUser, removeCookie] = useCookies([]);
     
     //Se crea el objeto para navegar entre rutas
     const navigate = useNavigate();
+
 
     //Se crea el método encargado de recuperar los datos ingresados en el formulario de inicio de sesión
     const Submit_button = (event) =>{
@@ -24,8 +25,8 @@ function Login(){
         //Se guardan los datos, como el valor de las variables carnet y password se actualiza en tiempo
         //real, entonces lo almacenamos en un objeto de tipo json
         const data = {
-            User: carnet,
-            Password: password
+            codigo: carnet,
+            contrasenia: password
         }
 
         //Ahora utilizo la función fetch para comunicarme con el backend, enviado el método http, el cuerpo de la petición
@@ -46,33 +47,33 @@ function Login(){
                     if(res.role == 0){
                         Swal.fire({
                             title: 'Login!',
-                            text: `Welcome: ${res.info.Nombre} ${res.info.Apellido}`,
+                            text: `Welcome: ${res.info.nombre} ${res.info.apellido}`,
                             icon: 'success',
                             confirmButtonText: 'Ok'
                         });
                         
-                        setCookieUser('admin', {Nombre: res.info.Nombre, Apellido: res.info.Apellido, User: res.info.User});
+                        setCookieUser('admin', {nombre: res.info.nombre, apellido: res.info.apellido, user: res.info.codigo}, { path: '/admin'});
                         navigate('/admin');
                     }
                     if(res.role == 1){
-                        // Swal.fire({
-                        //     title: 'Login!',
-                        //     text: `Welcome: ${res.info.Nombre} ${res.info.Apellido}`,
-                        //     icon: 'success',
-                        //     confirmButtonText: 'Ok'
-                        // });
-                        setCookieUser('student', {Nombre: res.info.Nombre, Apellido: res.info.Apellido, User: res.info.User});
-                        //navigate('/student');
+                        Swal.fire({
+                            title: 'Login!',
+                            text: `Welcome: ${res.info.nombre}`,
+                            icon: 'success',
+                            confirmButtonText: 'Ok'
+                        });
+                        setCookieUser('student', {nombre: res.info.nombre, carnet: res.info.carnet}, { path: '/student'});
+                        navigate('/student');
                     }
                     if(res.role == 2){
-                        // Swal.fire({
-                        //     title: 'Login!',
-                        //     text: `Welcome: ${res.info.Nombre} ${res.info.Apellido}`,
-                        //     icon: 'success',
-                        //     confirmButtonText: 'Ok'
-                        // });
-                        setCookieUser('professor', {Nombre: res.info.Nombre, Apellido: res.info.Apellido, User: res.info.User});
-                        //navigate('/professor');
+                        Swal.fire({
+                            title: 'Login!',
+                            text: `Welcome: ${res.info.nombre}`,
+                            icon: 'success',
+                            confirmButtonText: 'Ok'
+                        });
+                        setCookieUser('professor', {nombre: res.info.nombre, codigo: res.info.codigo, cursos: res.info.cursos}, { path: '/professor'});
+                        navigate(`/professor/${res.info.codigo}/home`);
                     }
                 }
                 else{
