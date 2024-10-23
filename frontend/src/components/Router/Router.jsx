@@ -5,6 +5,7 @@ import AdminStudents from '../admin/AdminStudents.jsx';
 import AdminProfessors from '../admin/AdminProfessors.jsx';
 import AdminCourses from '../admin/AdminCourses.jsx';
 import ProfessorHome from '../professor/professor_home.jsx';
+import ProfessorCourse from '../professor/professor_course.jsx';
 
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
                 <Route path='/admin/professors' element={<AdminProfessors />} />
                 <Route path='/admin/courses' element={<AdminCourses />} />
                 <Route path='/professor/:codigo/home' element={<ProfessorHome />} />
+                <Route path='/professor/:codigo/course/:codigoCurso' element={<ProfessorCourse />} />
                 <Route path='/' element={<Navigate to='/login' />} />
             </Routes>
        </BrowserRouter>

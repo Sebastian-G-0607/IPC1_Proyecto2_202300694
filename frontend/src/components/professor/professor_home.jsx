@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProfessorCourses } from '../professorCourses.jsx';
-import './course.css';
+import './professorHome.css';
 import { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
 import { useNavigate } from 'react-router-dom';
@@ -12,15 +12,7 @@ function ProfessorHome() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // fetch('http://localhost:4000/admin/courses', {
-        //     method: "GET"
-        // })
-        // .then(response => response.json())
-        // .then(res => {
-        //     setListaCursos(res)
-        // })
         setListaCursos(useCookie.professor.cursos)
-        console.log(listaCursos);
     }, [pageState])
 
     function handleLogout(){

@@ -191,7 +191,8 @@ export async function saveCourses(req, res){
                 if(index != -1){
                     professors[index].cursos.push(course)
                 }
-                course.alumnos = 0;
+                course.alumnos = [];
+                course.actividades = [];
                 courses.push(course);
             })
 
@@ -228,6 +229,113 @@ export async function updateCourse(req, res){
 
         return res.status(200).json({state: true})
 
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
+    }
+}
+
+export async function uploadActivities(req, res){
+    try {
+        const reqBody = req.body;
+        const codCourse = req.params.course;
+        const codProfessor = req.params.professor;
+        let band = true;
+
+        for(let element of reqBody){
+            if(element.nombre === undefined || element.descripción === undefined || element.ponderación === undefined || element.profesor === undefined || element.notas === undefined){
+                band = false;
+                break;
+            }
+        };
+
+        if (band){
+            //Se encuentra el índice del curso dentro del back
+            const index = courses.findIndex(course => course.codigo == codCourse);
+            //Se insertan las actividades en el curso
+            reqBody.forEach(activity => courses[index].actividades.push(activity));
+
+            //Se busca el índice del profesor
+            const indexProf = professors.findIndex(prof => prof.codigo === codProfessor);
+            //Se busca busca el índice del curso dentro de la lista de cursos del profesor
+            const indexNewCourse = professors[indexProf].cursos.findIndex(course => course.codigo == codCourse);
+            //se actualiza el curso del profesor
+            professors[indexProf].cursos[indexNewCourse] = courses[index];
+            console.log("DEL POST", professors[indexProf].cursos);
+
+            return res.status(200).json({state: true})
+        }
+        else{
+            return res.status(400).json({state: false})
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
+    }
+}
+
+export async function getActivitiesAndStudents(req, res){
+    try {
+        const codCourse = req.params.course;
+        const codProfessor = req.params.professor;
+        let alumnos = [];
+
+        const indexProf = professors.findIndex(prof => prof.codigo === codProfessor);
+        const indexCourse = professors[indexProf].cursos.findIndex(course => course.codigo == codCourse);
+
+        professors[indexProf].cursos[indexCourse].alumnos.forEach(student => {
+            let temporal = students.find(std => std.carnet == student.carnet);
+            student.nombre = temporal.nombre
+        })
+
+        return res.status(200).json({state: true, profe: professors[indexProf], cursos: professors[indexProf].cursos})
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
+    }
+}
+
+export async function uploadStudents(req, res){
+    try {
+        const reqBody = req.body;
+        const codCourse = req.params.course;
+        const codProfessor = req.params.professor;
+        let band = true;
+
+        for(let element of reqBody){
+            if(element.carnet === undefined){
+                band = false;
+                break;
+            }
+        };
+        
+        if(band){
+            const indexProf = professors.findIndex(prof => prof.codigo === codProfessor);
+
+            const index = courses.findIndex(course => course.codigo == codCourse);
+            reqBody.forEach(alumno => courses[index].alumnos.push(alumno));
+    
+            const indexCourseProf = professors[indexProf].cursos.findIndex(curso => curso.codigo == codCourse)
+    
+            professors[indexProf].cursos[indexCourseProf] = courses[index];
+            
+            return res.status(200).json({state: true})
+        }
+        else{
+            return res.status(400).json({state: false})
+        }
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).json({state: false})
+    }
+}
+
+export async function getCourseStudents(req, res){
+    try {
+        const codCourse = req.params.course;
+        const index = courses.findIndex(course => course.codigo == codCourse);
     } catch (error) {
         console.log(error);
         return res.status(400).json({state: false})

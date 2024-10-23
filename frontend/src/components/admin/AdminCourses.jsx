@@ -210,7 +210,7 @@ function AdminCourses(){
                                 <td>{course.codigo}</td>
                                 <td>{`${course.nombre}`}</td>
                                 <td>{course.creditos}</td>
-                                <td>{course.alumnos}</td>
+                                <td>{course.alumnos.length}</td>
                                 <td>{course.profesor}</td>
                                 <td>
                                     <button className="btn btn-warning me-2" onClick={() => setCourse(course)}>Editar</button>
