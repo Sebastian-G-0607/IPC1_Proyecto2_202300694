@@ -31,8 +31,8 @@
 }
 
 .table-container {
-  margin: 0 auto; /* Centra horizontalmente */
-  min-width: 80%; /* Limita el ancho */
+  margin: 0 auto; 
+  min-width: 80%; 
 }
 
 .SistemaEcys {

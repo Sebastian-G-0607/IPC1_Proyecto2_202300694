@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
-import { updateCourse } from '../../../../backend/controllers/consultas.mjs';
+import * as XLSX from 'xlsx';
 
 function AdminCourses(){
     //Se recupera la cookie del login
@@ -75,6 +75,21 @@ function AdminCourses(){
         reader.onerror = () => {
             console.log( reader.error );
         }
+    }
+
+    const handleFileExport = () => {
+        let parametro = coursesList;
+        parametro.forEach(curso => {
+            delete curso.actividades;
+            curso.alumnos = curso.alumnos.length;
+        })
+
+        const libro = XLSX.utils.book_new();
+        const hoja = XLSX.utils.json_to_sheet(parametro);
+
+        XLSX.utils.book_append_sheet(libro, hoja, "Cursos");
+
+        XLSX.writeFile(libro, "Cursos.xlsx");
     }
 
     function deleteProfessor(idCourse){
@@ -189,7 +204,7 @@ function AdminCourses(){
                     style={{ display: 'none' }}
                     onChange={handleFileUpload}
                 />
-                <button type="button" className="btn btn-info">Exportar Excel</button>
+                <button type="button" className="btn btn-info" onClick={handleFileExport}>Exportar Excel</button>
             </div>
 
             <div className="container">

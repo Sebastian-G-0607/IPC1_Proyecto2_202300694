@@ -1,6 +1,6 @@
 import { useCookies } from "react-cookie";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate, Link, Route, BrowserRouter } from "react-router-dom";
 import './professorCourse.css';
 import Swal from 'sweetalert2'
 
@@ -116,21 +116,31 @@ function ProfessorCourse(){
             .catch(err => console.log(err))
         }
     }
+    
+    function setPromedio(arrayNotas){
+        let promedio = 0;
+        arrayNotas.forEach(nota => {
+            promedio += nota.nota;
+        })
+        promedio /= arrayNotas.length;
+        return promedio;
+    }
 
     return(
         <>
-            <div className="course-info">
-                <h2>CURSO:</h2>
-                <p>{curso.nombre}</p>
-            </div>
-            <div className="course-info">
-                <h2>CODIGO:</h2>
-                <p>{codigoCurso}</p>
-            </div>
+            <div className="curso-container">
+                <div className="course-info">
+                    <h2>CURSO:</h2>
+                    <p>{curso.nombre}</p>
+                </div>
+                <div className="course-info">
+                    <h2>CODIGO:</h2>
+                    <p>{codigoCurso}</p>
+                </div>
 
-            <div className="container-prof-course">
-                <div className="left-section-prof-course">
-                    <h2>Listado de alumnos</h2>
+                <div className="container-prof-course">
+                    <div className="left-section-prof-course">
+                        <h2>Listado de alumnos</h2>
                         <table className="table-prof-course-left">
                             <thead>
                                 <tr>
@@ -144,46 +154,50 @@ function ProfessorCourse(){
                                     </tr>
                                 ))}
                             </thead>
-                            <tbody>
-                            </tbody>
+                            <tbody></tbody>
                         </table>
+                    </div>
+
+                    <div className="right-section-prof-course">
+                        <div className="right-header">
+                            <h2>Listado de actividades</h2>
+                            <p>{`Acumulado ${ponderacion}/100`}</p>
+                        </div>
+                        <div className="table-container">
+                            <table className="table-prof-course-right">
+                                <thead>
+                                    <tr>
+                                        <th className="th-prof-course">Nombre</th>
+                                        <th className="th-prof-course">Descripción</th>
+                                        <th className="th-prof-course">Ponderación</th>
+                                        <th className="th-prof-course">Promedio</th>
+                                    </tr>
+                                    {activitiesList.map((actividad, index) => (
+                                        <tr key={index}>
+                                            <td>{actividad.nombre}</td>
+                                            <td>{actividad.descripción}</td>
+                                            <td>{actividad.ponderación}</td>
+                                            <td>{setPromedio(actividad.notas)}</td>
+                                        </tr>
+                                    ))}
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+
+                        <div className="button-container">
+                            <input type="file" className="cargar-a" id="cargar-actividades" onChange={handleUploadActivities} />
+                            <label htmlFor="cargar-actividades" className="cargar-a">Cargar actividades</label>
+
+                            <input type="file" className="cargar-a" id="cargar-alumnos" onChange={handleUploadStudents} />
+                            <label htmlFor="cargar-alumnos" className="cargar-a">Cargar alumnos</label>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="right-section-prof-course">
-                    <div className="right-header">
-                        <h2>Listado de actividades</h2>
-                        <p>{`Acumulado ${ponderacion}/100`}</p>
-                    </div>
-                    <div className="table-container">
-                        <table className="table-prof-course-right">
-                            <thead>
-                                <tr>
-                                    <th className="th-prof-course">Nombre</th>
-                                    <th className="th-prof-course">Descripción</th>
-                                    <th className="th-prof-course">Ponderación</th>
-                                    <th className="th-prof-course">Promedio</th>
-                                </tr>
-                                {activitiesList.map((actividad, index ) => (
-                                    <tr key={index}>
-                                        <td>{actividad.nombre}</td>
-                                        <td>{actividad.descripción}</td>
-                                        <td>{actividad.ponderación}</td>
-                                        <td>100</td>
-                                    </tr>
-                                ))}
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div className="button-container">
-                        <input type="file" className="cargar-a" id="cargar-actividades" onChange={handleUploadActivities} />
-                        <label htmlFor="cargar-actividades" className="cargar-a">Cargar actividades</label>
-
-                        <input type="file" className="cargar-a" id="cargar-alumnos" onChange={handleUploadStudents} />
-                        <label htmlFor="cargar-alumnos" className="cargar-a">Cargar alumnos</label>
-                    </div>
-
+                <div className="centered-buttons-wrapper">
+                    <Link to={`/professor/${cookie.professor.codigo}/course/${codigoCurso}/graphs/5b`} className="performance-button">Top 5 mejor rendimiento</Link>
+                    <Link to={`/professor/${cookie.professor.codigo}/course/${codigoCurso}/graphs/5w`} className="performance-button">Top 5 peor rendimiento</Link>
                 </div>
             </div>
         </>

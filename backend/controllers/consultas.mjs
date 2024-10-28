@@ -59,6 +59,7 @@ export async function saveStudents(req, res){
         };
         if(band){
             reqBody.forEach(element => {
+                element.cursos = [];
                 students.push(element);
             });
             return res.status(200).json({state: true})
@@ -253,15 +254,15 @@ export async function uploadActivities(req, res){
             //Se encuentra el índice del curso dentro del back
             const index = courses.findIndex(course => course.codigo == codCourse);
             //Se insertan las actividades en el curso
-            reqBody.forEach(activity => courses[index].actividades.push(activity));
+            reqBody.forEach(activity => {
+                courses[index].actividades.push(activity)});
 
             //Se busca el índice del profesor
-            const indexProf = professors.findIndex(prof => prof.codigo === codProfessor);
+            const indexProf = professors.findIndex(prof => prof.codigo == codProfessor);
             //Se busca busca el índice del curso dentro de la lista de cursos del profesor
             const indexNewCourse = professors[indexProf].cursos.findIndex(course => course.codigo == codCourse);
             //se actualiza el curso del profesor
             professors[indexProf].cursos[indexNewCourse] = courses[index];
-            console.log("DEL POST", professors[indexProf].cursos);
 
             return res.status(200).json({state: true})
         }
@@ -289,6 +290,7 @@ export async function getActivitiesAndStudents(req, res){
             student.nombre = temporal.nombre
         })
 
+
         return res.status(200).json({state: true, profe: professors[indexProf], cursos: professors[indexProf].cursos})
     } catch (error) {
         console.log(error);
@@ -312,15 +314,23 @@ export async function uploadStudents(req, res){
         
         if(band){
             const indexProf = professors.findIndex(prof => prof.codigo === codProfessor);
-
             const index = courses.findIndex(course => course.codigo == codCourse);
-            reqBody.forEach(alumno => courses[index].alumnos.push(alumno));
+
+            //Añadiendo a cada estudiante su curso asignado
+            reqBody.forEach(alumno => {
+                let indexStudent = students.findIndex(stud => stud.carnet == alumno.carnet);
+                let indexCourse = courses.findIndex(course => course.codigo == codCourse);
+                if(indexStudent != -1 && indexCourse != -1){
+                students[indexStudent].cursos.push(courses[indexCourse]);
+                courses[index].alumnos.push(alumno)}});
     
             const indexCourseProf = professors[indexProf].cursos.findIndex(curso => curso.codigo == codCourse)
     
             professors[indexProf].cursos[indexCourseProf] = courses[index];
+
+            console.log("Estudiantes actualizados asignados a cursos:");
             
-            return res.status(200).json({state: true})
+            return res.status(200).json({state: true, students: students})
         }
         else{
             return res.status(400).json({state: false})
@@ -332,10 +342,13 @@ export async function uploadStudents(req, res){
     }
 }
 
-export async function getCourseStudents(req, res){
+
+export async function getStudentCourses(req, res){
     try {
-        const codCourse = req.params.course;
-        const index = courses.findIndex(course => course.codigo == codCourse);
+        const carnet = req.params.carnet;
+        const index = students.findIndex(student => student.carnet == carnet);
+
+        return res.status(200).json({state: true, cursos: students[index].cursos, students: students})
     } catch (error) {
         console.log(error);
         return res.status(400).json({state: false})

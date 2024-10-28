@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Modal, Button } from 'react-bootstrap';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 function AdminStudents(){
     //Se recupera la cookie del login
@@ -142,6 +143,21 @@ function AdminStudents(){
 
     }
 
+    const handleFileExport = () => {
+        let parametro = studentList;
+        parametro.forEach(student => {
+            delete student.cursos;
+
+        })
+
+        const libro = XLSX.utils.book_new();
+        const hoja = XLSX.utils.json_to_sheet(parametro);
+
+        XLSX.utils.book_append_sheet(libro, hoja, "Estudiantes");
+
+        XLSX.writeFile(libro, "Estudiantes.xlsx");
+    }
+
     return(
         <>
             <nav className="navbar navbar-expand-lg bg-body-tertiary">
@@ -196,7 +212,7 @@ function AdminStudents(){
                     style={{ display: 'none' }}
                     onChange={handleFileUpload}
                 />
-                <button type="button" className="btn btn-info">Exportar Excel</button>
+                <button type="button" className="btn btn-info" onClick={handleFileExport}>Exportar Excel</button>
             </div>
 
             <div className="container">

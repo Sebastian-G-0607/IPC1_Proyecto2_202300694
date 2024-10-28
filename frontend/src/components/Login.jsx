@@ -42,7 +42,6 @@ function Login(){
             .then((response) => response.json())
             //Promesa que ejecuta acciones con la respuesta del backend
             .then((res) => {
-                console.log(res);
                 if(res.state){
                     if(res.role == 0){
                         Swal.fire({
@@ -62,8 +61,9 @@ function Login(){
                             icon: 'success',
                             confirmButtonText: 'Ok'
                         });
-                        setCookieUser('student', {nombre: res.info.nombre, carnet: res.info.carnet}, { path: '/student'});
-                        navigate('/student');
+                        console.log(res);
+                        setCookieUser('student', { nombre: res.info.nombre, carnet: res.info.carnet }, { path: '/student'});
+                        navigate(`/student/${res.info.carnet}/home`);
                     }
                     if(res.role == 2){
                         Swal.fire({
@@ -108,7 +108,7 @@ function Login(){
                                             onChange={(e) => setCarnet(e.target.value)}
                                             value={carnet}
                                         />
-                                        <label htmlFor="floatingInput">Carnet</label>
+                                        <label htmlFor="floatingInput">User</label>
                                     </div>
                                     <div className="form-floating" style={{ width: "100%" }}>
                                         <input

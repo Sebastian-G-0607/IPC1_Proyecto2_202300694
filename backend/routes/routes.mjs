@@ -5,7 +5,7 @@ import express from 'express';
 export const router = express.Router();
 
 //Importando los controladores
-import { deleteCourses, deleteProfessor, deleteStudent, getActivitiesAndStudents, getCourses, getProfessors, getStudents, login, saveCourses, saveProfessors, saveStudents, updateCourse, updateProfessor, updateStudent, uploadActivities, uploadStudents } from '../controllers/consultas.mjs';
+import { deleteCourses, deleteProfessor, deleteStudent, getActivitiesAndStudents, getCourses, getProfessors, getStudentCourses, getStudents, login, saveCourses, saveProfessors, saveStudents, updateCourse, updateProfessor, updateStudent, uploadActivities, uploadStudents } from '../controllers/consultas.mjs';
 
 //Creando los endpoints
 
@@ -19,6 +19,7 @@ router.get('/admin/students', getStudents)
 router.get('/admin/professors', getProfessors)
 router.get('/admin/courses', getCourses)
 router.get('/:professor/:course/activities', getActivitiesAndStudents)
+router.get('/student/:carnet', getStudentCourses)
 router.delete('/admin/students/:carnet', deleteStudent)
 router.delete('/admin/professors/:codigo', deleteProfessor)
 router.delete('/admin/courses/:codigo', deleteCourses)
